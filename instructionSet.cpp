@@ -3,17 +3,19 @@
 using namespace std;
 
 class Instruction{
-protected:
+private:
     string mnemonic;
     short opcode;
     short size;
-    Instruction(string mnemonic, short opcode,short size){
+    vector<string>args;
+
+public:
+    Instruction(string mnemonic, short opcode,short size,vector<string>args){
         this->mnemonic = mnemonic;
         this->opcode = opcode;
         this->size =size;
+        this->args=args;
     }
-
-public:
 
     string getMnemonic(){
         return mnemonic;
@@ -26,175 +28,170 @@ public:
     short getSize(){
         return size;
     }
-};
 
-class Add: public Instruction{
-public:
-    string op;
-    Add(string a): Instruction("ADD",1,2){
-        op = a;
+    vector<string> getArgs(){
+        return args;
     }
 };
 
-class Sub: public Instruction{
-public:    
-    string op;
-    Sub(string a): Instruction("SUB",2,2){
-        op = a;
-    }
-};
+// class UnknownOperand : public std::exception {
+// private:
+//     string message;
 
-class Mul: public Instruction{
-public:
-    string op;
-    Mul(string a): Instruction("MUL",3,2){
-        op = a;
-    }
-};
-
-class Div: public Instruction{
-public:
-    string op;
-    Div(string a): Instruction("DIV",4,2){
-        op = a;
-    }
-};
-
-class Jmp: public Instruction{
-public:
-    string op;
-    Jmp(string a): Instruction("JMP",5,2){
-        op = a;
-    }
-};
-
-class Jmpn: public Instruction{
-public:
-    string op;
-    Jmpn(string a): Instruction("JMPN",6,2){
-        op = a;
-    }
-};
-
-class Jmpp: public Instruction{
-public:
-    string op;
-    Jmpp(string a): Instruction("JMPP",7,2){
-        op = a;
-    }
-};
-
-class Jmpz: public Instruction{
-public:
-    string op;
-    Jmpz(string a): Instruction("JMPZ",8,2){
-        op = a;
-    }
-};
-
-class Copy: public Instruction{
-public:
-    string op1;
-    string op2;
-    Copy(string a,string b): Instruction("COPY",9,3){
-        op1=a;
-        op2=b;
-    }
-};
-    
-
-class Load: public Instruction{
-public:
-    string op;
-    Load(string a): Instruction("LOAD",10,2){
-        op=a;
-    }
-};
-    
-class Store: public Instruction{
-public:
-    string op;
-    Store(string a): Instruction("STORE",11,2){
-        op=a;
-    }
-};
-
-class Input: public Instruction{
-public:
-    string op;
-    Input(string a): Instruction("INPUT",12,2){
-        op=a;
-    }
-};
-
-class Output: public Instruction{
-public:
-    string op;
-    Output(string a): Instruction("OUTPUT",13,2){
-        op=a;
-    }
-};
-
-class Stop: public Instruction{
-public:
-    Stop(): Instruction("STOP",14,1){}
-};
-
-ostream &operator<<(std::ostream &os, Instruction &a) { 
-    return os <<a.getMnemonic()<<" ("<<a.getOpcode()<<") - sz: "<<a.getSize()<<"\n";
-}
-
-
-
-// Intruction getInstruction(vector<string> a){
-//     string operation = a[0];
-//     if (operation == "ADD") {
-//         Intruction ans = Add add(a[1]);
-//         return Instructiont
-//     } else if (operation == "SUB") {
-        
-//     } else if (operation == "MUL") {
-        
-//     } else if (operation == "DIV") {
-        
-//     } else if (operation == "JMP") {
-        
-//     } else if (operation == "JMPN") {
-        
-//     } else if (operation == "JMPP") {
-       
-//     } else if (operation == "JMPZ") {
-       
-//     } else if (operation == "COPY") {
-        
-//     } else if (operation == "LOAD") {
-        
-//     } else if (operation == "STORE") {
-        
-//     } else if (operation == "INPUT") {
-        
-//     } else if (operation == "OUTPUT") {
-        
-//     } else if (operation == "STOP") {
-        
-//     } else {
-//         std::cerr << "Error: Invalid operation!" << std::endl;
+// public:
+//     UnknownOperand(const string& operation) {
+//         message = "Semantic Error! Operation " + operation + " is not part of the instruction set!";
 //     }
 
-// }
+//    const char* what() const noexcept override  {
+//         return message.c_str();
+//     }
+// };
 
+// class InvalidArgumentQtd : public exception {
+// private:
+//     string message;
 
+// public:
+//     InvalidArgumentQtd(const string& operation, int expected, int provided) {
+//         message = "Semantic Error! Operation " + operation + " demands " +
+//                   std::to_string(expected) + " arguments, whereas " +
+//                   std::to_string(provided) + " were provided!";
+//     }
 
-Instruction* getInstruction(vector<string> a){
+//      const char* what() override {
+//         return message.c_str();
+//     }
+// };
+
+Instruction getInstruction(vector<string> a){
     string operation = a[0];
+
     if (operation == "ADD") {
-        Add* ans = new Add(a[1]);
-        return ans;
-    } 
-    if(operation == "COPY"){
-        Copy* ans = new Copy(a[1],a[2]);
-        return ans;
+
+       if(a.size()!=2){
+            // throw InvalidArgumentQtd("ADD",1,a.size()-1);
+       }
+       a.erase(a.begin());
+       return Instruction(operation,1,2,a);
+
+    } else if (operation == "SUB") {
+
+        if(a.size()!=2){
+            // throw InvalidArgumentQtd("SUB",1,a.size()-1);
+        }
+        a.erase(a.begin());
+        return Instruction(operation,2,2,a);
+
+    } else if (operation == "MUL") {
+
+        if(a.size()!=2){
+            // throw InvalidArgumentQtd("MUL",1,a.size()-1);
+        }
+        a.erase(a.begin());
+        return Instruction(operation,3,2,a);
+
+    } else if (operation == "DIV") {
+
+        if(a.size()!=2){
+            // throw InvalidArgumentQtd("DIV",1,a.size()-1);
+        }
+        a.erase(a.begin());
+        return Instruction(operation,4,2,a);   
+          
+    } else if (operation == "JMP") {
+
+        if(a.size()!=2){
+            // throw InvalidArgumentQtd("JMP",1,a.size()-1);
+        }
+        a.erase(a.begin());
+        return Instruction(operation,5,2,a);   
+
+    } else if (operation == "JMPN") {
+
+        if(a.size()!=2){
+            // throw InvalidArgumentQtd("JMPN",1,a.size()-1);
+        }
+        a.erase(a.begin());
+        return Instruction(operation,6,2,a);   
+
+    } else if (operation == "JMPP") {
+
+        if(a.size()!=2){
+            // throw InvalidArgumentQtd("JMPP",1,a.size()-1);
+        }
+        a.erase(a.begin());
+        return Instruction(operation,7,2,a);   
+
+    } else if (operation == "JMPZ") {
+
+        if(a.size()!=2){
+            // throw InvalidArgumentQtd("JMPZ",1,a.size()-1);
+        }
+        a.erase(a.begin());
+        return Instruction(operation,8,2,a);   
+
+    } else if (operation == "COPY") {
+        
+        if(a.size()!=3){
+            // throw InvalidArgumentQtd("COPY",2,a.size()-1);
+        }
+        a.erase(a.begin());
+        return Instruction(operation,9,3,a);   
+
+    } else if (operation == "LOAD") {
+
+        if(a.size()!=2){
+            // throw InvalidArgumentQtd("LOAD",1,a.size()-1);
+        }
+        a.erase(a.begin());
+        return Instruction(operation,10,2,a);   
+
+    } else if (operation == "STORE") {
+
+        if(a.size()!=2){
+            // throw InvalidArgumentQtd("STORE",1,a.size()-1);
+        }
+        a.erase(a.begin());
+        return Instruction(operation,11,2,a);  
+
+
+    } else if (operation == "INPUT") {
+        
+        if(a.size()!=2){
+            // throw InvalidArgumentQtd("INPUT",1,a.size()-1);
+        }
+        a.erase(a.begin());
+        return Instruction(operation,12,2,a);  
+    
+    } else if (operation == "OUTPUT") {
+
+        if(a.size()!=2){
+            // throw InvalidArgumentQtd("OUTPUT",1,a.size()-1);
+        }
+        a.erase(a.begin());
+        return Instruction(operation,13,2,a);  
+
+
+    } else if (operation == "STOP") {
+
+        if(a.size()!=2){
+            // throw InvalidArgumentQtd("STOP",0,a.size()-1);
+        }
+        a.erase(a.begin());
+        return Instruction(operation,14,1,a);  
+
+    } else {
+        // throw UnknownOperand(operation);
     }
 
 }
+
+ostream &operator<<(std::ostream &os, Instruction &a) { 
+    string args="";
+    for(auto c:a.getArgs())args+=(c+" ");
+    return (os <<a.getMnemonic()<<" ("<<a.getOpcode()<<") - sz: "<<a.getSize()<<"\n"<<"args: "<<args<<"\n\n");
+
+}
+
 

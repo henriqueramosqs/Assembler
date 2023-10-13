@@ -75,7 +75,8 @@ vector<string>split(string s){
     string cur="";
     for(auto c:s){
         if(c==',' || c==' ' || c=='\n'){
-            ans.push_back(cur);
+            if(!cur.empty())ans.push_back(cur);
+            cur="";
         }else{
             cur+=c;
         }
@@ -92,9 +93,8 @@ public:
             //processa intrução que está sendo formada
             cur+=c;
 
-            if(c=='\n'){    
-                vector<string> instructionInfo = split(cur);
-                instructions.push_back(*getInstruction(instructionInfo));
+            if(c=='\n'){
+                instructions.push_back(getInstruction(split(cur)));
                 cur="";
             }
         }
