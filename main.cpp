@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+#include "instructionSet.cpp"
 #define dbg(x) cout<<#x<<": "<<x<<"\n";
 using namespace std;
 
@@ -17,52 +18,47 @@ public:
         return this;
     }
 
-    // eliminates multiple spaces, EOL's and commentaries
-    void cleanText(){
-        string ans="";
-        bool lastWasEOL=true;
-        bool lastWasSpace=false;
-        bool comment=false;
-        bool firstAfterComment=false;
-        
-        for(char c: rawText){
 
+    void rmComments(){
+        string ans="";
+
+        bool comment = false;
+        for(auto c:rawText){
             if(comment){
                 if(c=='\n'){
                     comment=false;
-                    firstAfterComment=true;
+                }else{
+                    continue;
                 }
-                continue;
             }
-
             if(c==';'){
-                comment=true;
+                comment = true;
                 continue;
             }
+            ans+=c;
+        }
 
+        rawText=ans;
+    }
+    // eliminates multiple spaces, EOL's and commentaries
+    void cleanText(){
+        rmComments();
+        string ans="";
+        
+        for(char c: rawText){
             
             if(c==' '){
-                if(!lastWasEOL && !lastWasSpace)ans+=c;
-                lastWasSpace=true;
-                lastWasEOL=false;
+                if(!ans.empty() && ans.back()!=' '
+                    && ans.back() !='\n' && ans.back()!=',')ans+=c;
                 continue;
             }
 
             if(c=='\n'){
-                if(!lastWasEOL)ans+=c;
-                lastWasEOL=true;
-                lastWasSpace=false;
+               if(!ans.empty() && ans.back() !='\n')ans+=c;
                 continue;
             }
 
-            if(firstAfterComment){
-                ans+='\n';
-                firstAfterComment=false;
-            }
-
             ans+=c; 
-            lastWasSpace=false;
-            lastWasEOL=false;
             
         }
         rawText=ans;
@@ -72,10 +68,49 @@ public:
         return rawText;
     }
     
-
 };
+
+vector<string>split(string s){
+    vector<string>ans;
+    string cur="";
+    for(auto c:s){
+        if(c==',' || c==' ' || c=='\n'){
+            if(!cur.empty())ans.push_back(cur);
+            cur="";
+        }else{
+            cur+=c;
+        }
+    }
+    return ans;
+}
+class Program{
+public:
+    vector<Instruction> instructions;
+    // tabela de símbolos
+    Program(InputFile input){
+        string cur="";
+        for(auto c:input.getRaw()){
+            //processa intrução que está sendo formada
+            cur+=c;
+
+            if(c=='\n'){
+                instructions.push_back(getInstruction(split(cur)));
+                cur="";
+            }
+        }
+    }
+};
+
 int main(){
     InputFile input;
     input.readFile()->cleanText();
+
     cout<<input.getRaw();
+
+    Program pr(input);
+
+    for(auto c:pr.instructions){
+        cout<<c;
+    }
+
 }   
