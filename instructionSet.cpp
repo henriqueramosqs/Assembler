@@ -1,6 +1,40 @@
 #include <bits/stdc++.h>
 #define dbg(x) cout<<#x<<": "<<x<<"\n";
+#define rep(i,a,b) for(int i = a;i<b;i++)
 using namespace std;
+string operands[14]={"ADD","SUB","MUL","DIV","JMP","JMPN","JMPP","JMPZ","COPY","LOAD","STORE","INPUT","OUTPUT","STOP"};
+
+bool isLetter(char a){
+   return (a>='a' && a<='z') || (a>='A' && a<='Z');
+}
+
+bool isNumber(char a){
+    return (a>='0' && a<='9');
+}
+
+bool isKnownOperand(string s){
+   rep(i,0,14){
+    if(operands[i]==s)return true;
+   }
+   return false;
+}
+
+bool validateArg(string s){
+    if( !isLetter(s[0]) && s[0]!=' ' ){
+        return false;
+    }
+    for(auto c:s){
+        if(!isLetter(c) && !isNumber(c) && c!='_')return false;
+    }
+
+    return true;
+}
+
+
+bool isLabel(string s){
+    if(s.back()!=':' ||validateArg(s.substr(0,s.size()-1)))return false;
+    return true;
+}
 
 class Instruction{
 private:
@@ -32,37 +66,19 @@ public:
     vector<string> getArgs(){
         return args;
     }
+    void insertArg(string x){
+        if(!validateArg(x)){
+            cerr<<"Invalid suntax in operand "<<x<<"valid operands can only contain english Letters and must not start with a number\n";
+            return;
+        }
+        args.push_back(x);
+    }
 };
 
-// class UnknownOperand : public std::exception {
-// private:
-//     string message;
+bool isKnownOperand(){
 
-// public:
-//     UnknownOperand(const string& operation) {
-//         message = "Semantic Error! Operation " + operation + " is not part of the instruction set!";
-//     }
+}
 
-//    const char* what() const noexcept override  {
-//         return message.c_str();
-//     }
-// };
-
-// class InvalidArgumentQtd : public exception {
-// private:
-//     string message;
-
-// public:
-//     InvalidArgumentQtd(const string& operation, int expected, int provided) {
-//         message = "Semantic Error! Operation " + operation + " demands " +
-//                   std::to_string(expected) + " arguments, whereas " +
-//                   std::to_string(provided) + " were provided!";
-//     }
-
-//      const char* what() override {
-//         return message.c_str();
-//     }
-// };
 
 Instruction getInstruction(vector<string> a){
     string operation = a[0];
@@ -182,7 +198,7 @@ Instruction getInstruction(vector<string> a){
         return Instruction(operation,14,1,a);  
 
     } else {
-        // throw UnknownOperand(operation);
+        cerr<<"Operação desconhedida\n";
     }
 
 }
@@ -195,3 +211,35 @@ ostream &operator<<(std::ostream &os, Instruction &a) {
 }
 
 
+
+
+
+// class UnknownOperand : public std::exception {
+// private:
+//     string message;
+
+// public:
+//     UnknownOperand(const string& operation) {
+//         this->message = ("Semantic Error! Operation " + operation + " is not part of the instruction set!");
+//     }
+
+//     const char* what()   {
+//         return (this->message).c_str();
+//     }
+// };
+
+// class InvalidArgumentQtd : public exception {
+// private:
+//     string message;
+
+// public:
+//     InvalidArgumentQtd(const string& operation, int expected, int provided) {
+//         message = "Semantic Error! Operation " + operation + " demands " +
+//                   std::to_string(expected) + " arguments, whereas " +
+//                   std::to_string(provided) + " were provided!";
+//     }
+
+//      const char* what() override {
+//         return message.c_str();
+//     }
+// };
