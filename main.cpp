@@ -12,6 +12,7 @@ private:
     string rawText;
 
 public:
+
     InputFile* readFile(){
         string aux;
     
@@ -21,7 +22,6 @@ public:
         }
         return this;
     }
-
 
     void rmComments(){
         string ans="";
@@ -44,6 +44,7 @@ public:
 
         rawText=ans;
     }
+
     // eliminates multiple spaces, EOL's and commentaries
     void cleanText(){
         rmComments();
@@ -61,6 +62,7 @@ public:
 class Program{
 public:
     vector<Instruction> instructions;
+    vector<int> memory;
 
     // tabela de símbolos
     map<string,int> symbolsTable;
@@ -76,14 +78,56 @@ public:
 
         int sz = strings.size();
         int curAddress=0;
+
+        // if Data section if last, moves it to front
+        bool dataFound=false;
+        rep(l,0,sz){
+
+            if(strings[l]=="DATA"){
+                int r = sz-1;
+                rep(_r,l+1,sz){
+                    if(strings[_r]=="TEXT"){
+                        r= _r;
+                        break;
+                    }
+                }
+                printf("l,r foun = %d,%d\n",l,r);
+
+                vector<string> aux1(strings.begin()+l,strings.begin()+r+1);
+                strings.erase(strings.begin()+l,strings.begin()+r+1);
+                // vector<string>aux2(strings.begin(),strings.end());
+                strings.insert(strings.begin(),aux1.begin(),aux1.end());
+                // strings.insert(strings.end(),aux2.begin(),aux2.end());
+                break;
+
+            }
+
+        }
+
+
+        for(auto it = strings.begin();it!=strings.end();){
+            if(*it == "DATA" || *it =="SECAO" || *it=="TEXT"){
+                strings.erase(it);
+            }else{
+                it++;
+            }
+        }
+        cout<<"\n\nAfter Change\n";
+        for(auto c:strings){
+            cout<<c<<" ";
+        }cout<<"\n";
+
         int l = 0; 
+        sz= strings.size();
+        // Uses two pointers technique to separate instructions
         while(l<sz){
-            // enquanto eu não encontrar um rótulo ou uma operação,
-            // estou olhando para argumentos da operação atual
+
+            // While I did not find an operator or label, I'm still looking
+            // at operands of current instruction
 
             int r = l+1;
             while(r<sz){
-                if(!isKnownOperand(strings[r]) && strings[r].back()!=':'){
+                if(!isKnownOperation(strings[r]) && strings[r].back()!=':'){
                     r++;
                 }else{
                    break;
@@ -94,8 +138,12 @@ public:
             rep(i,l,r)cout<<strings[i]<<"\n";
             cout<<"\n";
 
-            if(strings[l].back()==':'){    
+            // If first string is a label
+            if(strings[l].back()==':'){     
                 strings[l].pop_back();
+
+                // Checks if label is valid, if not, cuts intruction
+                // ans jumps to next
                 try{    
                     validateArg(strings[l]);
                 }catch(const char * excpt){
@@ -105,18 +153,56 @@ public:
                 }
 
                 if(strings[l+1]=="CONST"){
-                    //arrumar depois
+
+                    // If no const value is informed
                     if(r-l !=3){
-                        cerr<<"Sintaxe inválida !";
+                        cerr<<"Invalid syntax ! Const value not declaref";
+
+                   
                     }else if(symbolsTable.find(strings[l])!=symbolsTable.end()){
-                        cerr<<"Símbolo"<<strings[l]<<"já definido\n";
+                         // If label is already defined
+                        cerr<<"Symbol"<<strings[l]<<"already defined\n";
                     }else{
-                        symbolsTable[strings[l]]=stoi(strings[l+2]);
+
+                        // Makes assignment at symbols table
+                        try{
+                            symbolsTable[strings[l]]=curAddress;
+                            memory.pb(stoi(strings[l+2]));
+                            curAddress++;
+
+                        }catch(char *excpt){
+                            cerr<<"Not possible to convert "<<strings[l+2]<<" to integer";
+                        }
                     }
                 }else if(strings[l+1]=="SPACE"){
-                    symbolsTable[strings[l]]=0;
+                    if(r-l>3){
+                        cerr<<"Error in \"";
+                        rep(aux,l,r)cerr<<strings[aux]<<" ";
+                        cerr<<"\". Too Many arguments informed\n";
+                        l=r;
+                        continue;
+                    }else{
+                        if(r==l+2){
+                            memory.pb(0);
+                            symbolsTable[strings[l]]=curAddress;
+                            curAddress++;
+                        }else{
+                            int qtd;
+                            try{
+                                qtd = stoi(strings[l+2]);
+                            }catch(const char * expt){
+                                 cerr<<"Not possible to convert "<<strings[l+2]<<" to integer";
+                                 l=r;
+                                 continue;
+                            }
+                            rep(i,0,qtd)memory.pb(0);
+                            symbolsTable[strings[l]]=curAddress;
+                            curAddress+=qtd;
+                        }
+                    }
                 }else{
                     symbolsTable[strings[l]]=curAddress;
+                    curAddress++;
                 }
                 l=r;
                 continue;
@@ -133,12 +219,14 @@ public:
             l=r;
         }   
         
-        cout<<"\n\ninstructions:\n\n";
-        for(auto c:instructions)cout<<c<<"\n";
+        // cout<<"\n\ninstructions:\n\n";
+        // for(auto c:instructions)cout<<c<<"\n";
+
+        // cout<<"\n\nSymbols Table:\n\n";
+        // for(auto c:symbolsTable)cout<<c.first<<" "<<c.second<<"\n";
     }   
     
-    vector<int> secondPass(){
-        vector<int>mem;
+    void secondPass(){
         for(auto c:instructions){
             bool qt = false;
             for(auto x:c.getArgs()){
@@ -151,15 +239,20 @@ public:
 
             if(qt)continue;
 
-            mem.pb(c.getOpcode());
+            memory.pb(c.getOpcode());
             for(auto x:c.getArgs()){
-                mem.pb(symbolsTable[x]);
+                memory.pb(symbolsTable[x]);
             }
 
         }
 
-        return mem; 
+        for(auto x:memory ){
+        cout<<x<<"\n";
+        }
     }
+
+
+
 };
 
 int main(){
@@ -169,10 +262,6 @@ int main(){
     cout<<input.getRaw();
 
     Program pr(input);
-
-    for(auto x: pr.secondPass()){
-        cout<<x<<"\n";
-    };
-
+    pr.secondPass();
 }   
 

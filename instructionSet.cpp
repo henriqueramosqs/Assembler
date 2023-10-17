@@ -3,16 +3,18 @@
 #define dbg(x) cout<<#x<<": "<<x<<"\n";
 #define rep(i,a,b) for(int i = a;i<b;i++)
 using namespace std;
-string operands[14]={"ADD","SUB","MUL","DIV","JMP","JMPN","JMPP","JMPZ","COPY","LOAD","STORE","INPUT","OUTPUT","STOP"};
+string operations[14]={"ADD","SUB","MUL","DIV","JMP","JMPN","JMPP","JMPZ","COPY","LOAD","STORE","INPUT","OUTPUT","STOP"};
 
-
-bool isKnownOperand(string s){
+// Checks if operation is valid
+bool isKnownOperation(string s){
    rep(i,0,14){
-    if(operands[i]==s)return true;
+    if(operations[i]==s)return true;
    }
    return false;
 }
 
+
+// Checks if label is valid. If not, throws Exception
 void validateArg(string s){
     if(isNumber(s[0])){
         throw "Valid operands must not start with a number";
@@ -26,6 +28,7 @@ void validateArg(string s){
 }
 
 
+// Instruction class
 class Instruction{
 private:
     string mnemonic;
@@ -61,6 +64,8 @@ public:
     vector<string> getArgs(){
         return args;
     }
+
+    // Inserts argument into arguments. If not valid prints exception
     void insertArg(string x){
         try{
             validateArg(x);
@@ -77,6 +82,8 @@ public:
 };
 
 
+
+// returns char array for wrong operands quantity
 const char *InvalidArgumentQtd(const string operation, int expected, int provided) {
     string message = "Semantic Error! Operation " + operation + " demands " +
                 to_string(expected) + " arguments, whereas " +
@@ -86,6 +93,8 @@ const char *InvalidArgumentQtd(const string operation, int expected, int provide
 }
 
 
+
+// Assembles intructino
 Instruction getInstruction(vector<string> a){
     string operation = a[0];
 

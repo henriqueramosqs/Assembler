@@ -1,0 +1,12 @@
+SECAO TEXT
+ROT: INPUT N1 
+COPY      N1,N4 ; comentrio qualquer 
+
+
+COPY N2,N3
+
+OUTPUT N3
+STOP
+
+SECAO DATA N1: SPACE 4
+N2: CONST -48 N4: SPACE 5

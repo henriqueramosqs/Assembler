@@ -24,13 +24,13 @@ vector<string>split(string s){
     string cur="";
     for(auto c:s){
        if(c==' ' && !cur.empty()){
-            if(cur!="SECAO" && cur!="TEXT" && cur!="DATA")ans.pb(cur);
+            ans.pb(cur);
             cur="";
        }else{
         cur+=c;
        }
     }
-    if(!cur.empty() && cur!="SECAO" && cur!="TEXT" && cur!="DATA")ans.pb(cur);
+    if(!cur.empty())ans.pb(cur);
     return ans;
 }
 
