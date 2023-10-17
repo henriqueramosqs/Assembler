@@ -6,34 +6,7 @@
 using namespace std;
 
 
-string trim(string s){
-    int n = s.size(); 
-    string ans="";
-    rep(i,0,n){
-        if(s[i]=='\n' || s[i]=='\t' || s[i]==','){
-            s[i]=' ';
-        }
-        if(s[i]!=' ' || (!ans.empty() && ans.back()!=' ')){
-            ans+=s[i];
-        }
-    }
-    return ans;
-}
 
-vector<string>split(string s){
-    vector<string>ans;
-    string cur="";
-    for(auto c:s){
-       if(c==' ' && !cur.empty()){
-            ans.pb(cur);
-            cur="";
-       }else{
-        cur+=c;
-       }
-    }
-    if(!cur.empty())ans.pb(cur);
-    return ans;
-}
 class InputFile{
 private:
     string rawText;
@@ -88,10 +61,21 @@ public:
 class Program{
 public:
     vector<Instruction> instructions;
+
     // tabela de símbolos
+    map<string,int> symbolsTable;
+    
     Program(InputFile input){
+        
         vector<string> strings =split(input.getRaw());
+
+        cout<<"\n\n\nSPLITTED\n";
+        for(auto c:strings){
+            cout<<c<<" ";
+        }cout<<"\n";
+
         int sz = strings.size();
+        int curAddress=0;
         int l = 0; 
         while(l<sz){
             // enquanto eu não encontrar um rótulo ou uma operação,
@@ -99,21 +83,83 @@ public:
 
             int r = l+1;
             while(r<sz){
-                if(!isKnownOperand(strings[r]) && !isLabel(strings[r])){
+                if(!isKnownOperand(strings[r]) && strings[r].back()!=':'){
                     r++;
                 }else{
                    break;
                 }
             }
-            
+
+            cout<<"\nlidando com trecho\n";
+            rep(i,l,r)cout<<strings[i]<<"\n";
+            cout<<"\n";
+
+            if(strings[l].back()==':'){    
+                strings[l].pop_back();
+                try{    
+                    validateArg(strings[l]);
+                }catch(const char * excpt){
+                    cout<<excpt;
+                    l=r;
+                    continue;
+                }
+
+                if(strings[l+1]=="CONST"){
+                    //arrumar depois
+                    if(r-l !=3){
+                        cerr<<"Sintaxe inválida !";
+                    }else if(symbolsTable.find(strings[l])!=symbolsTable.end()){
+                        cerr<<"Símbolo"<<strings[l]<<"já definido\n";
+                    }else{
+                        symbolsTable[strings[l]]=stoi(strings[l+2]);
+                    }
+                }else if(strings[l+1]=="SPACE"){
+                    symbolsTable[strings[l]]=0;
+                }else{
+                    symbolsTable[strings[l]]=curAddress;
+                }
+                l=r;
+                continue;
+            }
+
             vector<string> aux(strings.begin()+l,strings.begin()+r);
-            instructions.pb(getInstruction(aux));
+            try{
+                instructions.pb(getInstruction(aux));
+                instructions.back().setAddress(curAddress);
+                curAddress+=instructions.back().getSize();
+            }catch(const char *expt){
+                cout<<expt<<"\n";
+            }
             l=r;
         }   
         
-        cout<<"\ninstructions:";
+        cout<<"\n\ninstructions:\n\n";
         for(auto c:instructions)cout<<c<<"\n";
     }   
+    
+    vector<int> secondPass(){
+        vector<int>mem;
+        for(auto c:instructions){
+            bool qt = false;
+            for(auto x:c.getArgs()){
+                if(symbolsTable.find(x)==symbolsTable.end()){
+                    cerr<<"Símbolo "<<x<<" nunca foi definido"<<"\n";
+                    qt = true;
+                }       
+            }
+
+
+            if(qt)continue;
+
+            mem.pb(c.getOpcode());
+            for(auto x:c.getArgs()){
+                mem.pb(symbolsTable[x]);
+            }
+
+        }
+
+        return mem; 
+    }
 };
 
 int main(){
@@ -124,8 +170,9 @@ int main(){
 
     Program pr(input);
 
-    for(auto c:pr.instructions){
-        cout<<c;
-    }
+    for(auto x: pr.secondPass()){
+        cout<<x<<"\n";
+    };
 
 }   
+
