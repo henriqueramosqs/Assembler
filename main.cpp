@@ -95,9 +95,7 @@ public:
 
                 vector<string> aux1(strings.begin()+l,strings.begin()+r+1);
                 strings.erase(strings.begin()+l,strings.begin()+r+1);
-                // vector<string>aux2(strings.begin(),strings.end());
                 strings.insert(strings.begin(),aux1.begin(),aux1.end());
-                // strings.insert(strings.end(),aux2.begin(),aux2.end());
                 break;
 
             }
@@ -219,11 +217,6 @@ public:
             l=r;
         }   
         
-        // cout<<"\n\ninstructions:\n\n";
-        // for(auto c:instructions)cout<<c<<"\n";
-
-        // cout<<"\n\nSymbols Table:\n\n";
-        // for(auto c:symbolsTable)cout<<c.first<<" "<<c.second<<"\n";
     }   
     
 
@@ -293,6 +286,7 @@ public:
 };
 
 int main(){
+
     InputFile input;
     input.readFile()->cleanText();
 

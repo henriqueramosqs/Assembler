@@ -3,9 +3,9 @@ ROT: INPUT N1
 COPY      N1,N4 ; comentrio qualquer 
 
 
-COPY N2,N2+1
+COPY N2,N2  +    2
 
-OUTPUT N1+a
+OUTPUT N1 + 5
 STOP
 
 SECAO DATA N1: SPACE 3

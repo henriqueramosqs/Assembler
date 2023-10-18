@@ -13,6 +13,8 @@
         "__hash_table": "cpp",
         "initializer_list": "cpp",
         "iterator": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "__node_handle": "cpp",
+        "stack": "cpp"
     }
 }
