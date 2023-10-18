@@ -226,22 +226,57 @@ public:
         // for(auto c:symbolsTable)cout<<c.first<<" "<<c.second<<"\n";
     }   
     
+
+    pair<string,int> solveOperand(string x){
+        string ans="";
+        string dif_st="";
+        bool firstPart=true;
+
+        for(auto c:x){
+            if(c=='+'){
+                firstPart=false;
+                continue;
+            }
+            if(firstPart){
+                ans+=c;
+            }else{
+                dif_st+=c;
+            }
+        }  
+        // dbg(x)
+        // dbg(ans)
+        // dbg(dif_st)
+        int dif =0;
+        if(!dif_st.empty()){
+            dif = stoi(dif_st);
+        }
+        return make_pair(ans,dif);
+    }
+
     void secondPass(){
         for(auto c:instructions){
             bool qt = false;
+
+            vector<pair<string,int > >treatedArgs;
+
             for(auto x:c.getArgs()){
-                if(symbolsTable.find(x)==symbolsTable.end()){
-                    cerr<<"Símbolo "<<x<<" nunca foi definido"<<"\n";
+                pair<string,int> arg = solveOperand(x);
+
+                if(symbolsTable.find(arg.first)==symbolsTable.end()){
+                    cerr<<"Símbolo "<<arg.first<<" nunca foi definido"<<"\n";
                     qt = true;
-                }       
+                }else{
+                    treatedArgs.push_back(arg);
+                }
             }
 
 
             if(qt)continue;
 
             memory.pb(c.getOpcode());
-            for(auto x:c.getArgs()){
-                memory.pb(symbolsTable[x]);
+
+            for(auto x:treatedArgs){
+                memory.pb(symbolsTable[x.first]+x.second);
             }
 
         }

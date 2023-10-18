@@ -20,7 +20,7 @@ void validateArg(string s){
         throw "Valid operands must not start with a number";
     }
     for(auto c:s){
-        if(!isLetter(c) && !isNumber(c) && c!='_'){
+        if(!isLetter(c) && !isNumber(c) && c!='_' && c!='+'){
             throw "Valid operands might only contain english alphabet letters, numbers and _";
         }
     }
