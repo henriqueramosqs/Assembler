@@ -5,7 +5,7 @@ COPY      N1,N4 ; comentrio qualquer
 
 COPY N2,N2+1
 
-OUTPUT N1+2
+OUTPUT N1+a
 STOP
 
 SECAO DATA N1: SPACE 3

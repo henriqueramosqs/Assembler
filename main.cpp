@@ -243,9 +243,6 @@ public:
                 dif_st+=c;
             }
         }  
-        // dbg(x)
-        // dbg(ans)
-        // dbg(dif_st)
         int dif =0;
         if(!dif_st.empty()){
             dif = stoi(dif_st);
@@ -260,10 +257,15 @@ public:
             vector<pair<string,int > >treatedArgs;
 
             for(auto x:c.getArgs()){
-                pair<string,int> arg = solveOperand(x);
-
+                pair<string,int> arg;
+                try{
+                    arg = solveOperand(x);
+                }catch(...){
+                    cerr<<"It was not possible to solve operand "<<x<<"\n";
+                    qt=true;
+                }
                 if(symbolsTable.find(arg.first)==symbolsTable.end()){
-                    cerr<<"Símbolo "<<arg.first<<" nunca foi definido"<<"\n";
+                    cerr<<"Sybol "<<arg.first<<" was never defined"<<"\n";
                     qt = true;
                 }else{
                     treatedArgs.push_back(arg);
