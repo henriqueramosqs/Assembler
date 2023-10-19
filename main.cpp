@@ -13,10 +13,10 @@ private:
 
 public:
 
-    InputFile* readFile(){
+    InputFile* readFile(ifstream &inputFile){
         string aux;
     
-        while(getline(cin,aux)){
+        while(getline(inputFile,aux)){
             aux+='\n';
             rawText+=aux;
         }
@@ -243,7 +243,7 @@ public:
         return make_pair(ans,dif);
     }
 
-    void secondPass(){
+    void secondPass(ofstream &out){
         for(auto c:instructions){
             bool qt = false;
 
@@ -269,10 +269,12 @@ public:
             if(qt)continue;
 
             memory.pb(c.getOpcode());
+            out<<c.getOpcode()<<" ";
 
             for(auto x:treatedArgs){
                 memory.pb(symbolsTable[x.first]+x.second);
-            }
+                out<<symbolsTable[x.first]+x.second<<" ";
+            }out<<"\n";
 
         }
 
@@ -285,14 +287,55 @@ public:
 
 };
 
-int main(){
 
+string getObjName(string path){
+    string ans="";
+    int n= path.size();
+    int l=0;
+
+    rep(j,0,n){
+        int _l = n-1-j;
+        if(path[_l]=='/'){
+            l=_l+1;
+            break;
+        }
+    }
+    rep(i,l,n){
+        if(path[i]=='.')break;
+        ans+=path[i];
+    }
+    ans+=".obj";
+    return ans;
+}
+
+int main(int argc, char* argv[]){
+
+
+
+    if(argc!=2){
+        cerr << "Please inform only the realative path to the desired file " << argv[1] << "\n";
+        return 0;
+    }
+
+    ifstream inputFile(argv[1]);
+
+    if (!inputFile.is_open()) {
+        cerr << "Error: Unable to open file " << argv[1] << "\n";
+        return 0;
+    }
+
+    ofstream outputFile(getObjName(string(argv[1])));
     InputFile input;
-    input.readFile()->cleanText();
+
+    input.readFile(inputFile)->cleanText();
+
+    inputFile.close();
 
     cout<<input.getRaw();
 
     Program pr(input);
-    pr.secondPass();
+    pr.secondPass(outputFile);
+
+    outputFile.close();
 }   
 
