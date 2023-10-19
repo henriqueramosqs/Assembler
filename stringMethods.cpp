@@ -4,21 +4,6 @@
 #define pb push_back
 using namespace std;
 
-vector<string>split(string s){
-    vector<string>ans;
-    string cur="";
-
-    for(auto c:s){
-       if(c==' ' && !cur.empty()){
-            ans.pb(cur);
-            cur="";
-       }else{
-        cur+=c;
-       }
-    }
-    if(!cur.empty())ans.pb(cur);
-    return ans;
-}
 
 bool isLetter(char a){
    return (a>='a' && a<='z') || (a>='A' && a<='Z');
@@ -26,6 +11,40 @@ bool isLetter(char a){
 
 bool isNumber(char a){
     return (a>='0' && a<='9');
+}
+
+string toUpper(string s){
+    string ans="";
+    for(auto c:s){
+        if(!isLetter(c)){
+            ans+=c;
+        }else{
+            if(c>='a' && c<='z'){
+                ans+=(c+'A'-'a');
+            }else{  
+                ans+=c;
+            }
+        }
+    }
+    return ans;
+}
+
+
+
+vector<string>split(string s){
+    vector<string>ans;
+    string cur="";
+
+    for(auto c:s){
+       if(c==' ' && !cur.empty()){
+            ans.pb(toUpper(cur));
+            cur="";
+       }else{
+        cur+=c;
+       }
+    }
+    if(!cur.empty())ans.pb(toUpper(cur));
+    return ans;
 }
 
 
