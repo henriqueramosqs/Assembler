@@ -1,11 +1,22 @@
+SECAO DATA
+
+N1: CONST 1
+N2: CONST 2
+N5: SPACE
+N3: SPACE
+N4: SPACE
 
 
+SECAO 
+
+
+TEXT
 ; kkkkk
 
 
 
-ADD 1        ;soma 1 no aC
-ADD 5
+ADD N1        ;soma 1 no aC
+ADD N5
 
 COPY N1,N2
 
@@ -14,7 +25,7 @@ COPY N1,N2
 
 COPY N3,   N4
 
-    ADD 2; soma 2 no aC
+    ADD N2; soma 2 no aC
 ;Muito maneiro isso
 
 
