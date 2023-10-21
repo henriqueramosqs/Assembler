@@ -48,8 +48,6 @@ public:
     // eliminates multiple spaces, EOL's and commentaries
     void cleanText(){
         rmComments();
-        cout<<"No comments: ";
-        cout<<getRaw()<<"\n";
         rawText = trim(rawText);
     }
 
@@ -63,22 +61,75 @@ class Program{
 public:
     vector<Instruction> instructions;
     vector<int> memory;
+    vector<int>auxData;
 
+    int curAddress=0;
     // tabela de símbolos
     map<string,int> symbolsTable;
+    // tabela de macros
+    map<string,pair<int,vector<string> > >macros;
+
+
+    bool isMacro(string x){
+        return macros.find(x)!=macros.end();
+    }
+
+
+    void insertMacro(vector<string> v){
+        string nome = v[0];
+        v.erase(v.begin());
+        map<string,int> args;
+        int counter=0;
+
+
+        vector<string>subs;
+
+
+        for(auto &c:v){
+            if(c=="MACRO" || c=="ENDMACRO")continue;
+
+            if(c[0]=='&'){
+                string nome = c.substr(1,c.size()-1);
+                if(args.find(nome)!=args.end()){
+                    c=('#'+to_string(args[nome]));
+                }else{
+                    args[nome]=counter++;
+                    continue;
+                }   
+            }
+            subs.pb(c);
+            
+        }
+        macros[nome]=make_pair(counter,subs);
+    }
+
+
+    void showMacros(){
+        cout<<"\nDefined Macros:\n";
+
+        for(auto c:macros){
+        cout<<c.first<<" ("<<c.second.first<<") ";
+        for(auto x:c.second.second)cout<<x<<" ";
+        cout<<"\n";
+        }
+    }
+
+
+    void showSymbolsTable(){
+        cout<<"\nSymbols Table\n";
+        for(auto c:symbolsTable){
+            cout<<c.first<<" "<<c.second<<"\n";
+        }cout<<"\n";    
+    }
     
     Program(InputFile input){
         
         vector<string> strings =split(input.getRaw());
 
-        cout<<"\n\n\nSPLITTED\n";
-        for(auto c:strings){
-            cout<<c<<" ";
-        }cout<<"\n";
-
         int sz = strings.size();
-        int curAddress=0;
-
+        
+        // stans for relative data
+        int dataAddr=0;
         // if Data section if last, moves it to front
         bool dataFound=false;
         rep(l,0,sz){
@@ -91,11 +142,10 @@ public:
                         break;
                     }
                 }
-                printf("l,r foun = %d,%d\n",l,r);
 
                 vector<string> aux1(strings.begin()+l,strings.begin()+r+1);
                 strings.erase(strings.begin()+l,strings.begin()+r+1);
-                strings.insert(strings.begin(),aux1.begin(),aux1.end());
+                strings.insert(strings.end(),aux1.begin(),aux1.end());
                 break;
 
             }
@@ -110,22 +160,23 @@ public:
                 it++;
             }
         }
-        cout<<"\n\nAfter Change\n";
+
+        cout<<"\n\nTreated input:\n";
         for(auto c:strings){
             cout<<c<<" ";
         }cout<<"\n";
 
+
         int l = 0; 
-        sz= strings.size();
         // Uses two pointers technique to separate instructions
-        while(l<sz){
+        while(l<strings.size()){
 
             // While I did not find an operator or label, I'm still looking
             // at operands of current instruction
 
             int r = l+1;
-            while(r<sz){
-                if(!isKnownOperation(strings[r]) && strings[r].back()!=':'){
+            while(r<strings.size()){
+                if(!isKnownOperation(strings[r]) && !isMacro(strings[r]) && strings[r].back()!=':'){
                     r++;
                 }else{
                    break;
@@ -133,7 +184,7 @@ public:
             }
 
             cout<<"\nlidando com trecho\n";
-            rep(i,l,r)cout<<strings[i]<<"\n";
+            rep(i,l,r)cout<<strings[i]<<" ";
             cout<<"\n";
 
             // If first string is a label
@@ -164,9 +215,9 @@ public:
 
                         // Makes assignment at symbols table
                         try{
-                            symbolsTable[strings[l]]=curAddress;
-                            memory.pb(stoi(strings[l+2]));
-                            curAddress++;
+                            symbolsTable[strings[l]]=dataAddr;
+                            auxData.pb(stoi(strings[l+2]));
+                            dataAddr++;
 
                         }catch(char *excpt){
                             cerr<<"Not possible to convert "<<strings[l+2]<<" to integer";
@@ -181,9 +232,9 @@ public:
                         continue;
                     }else{
                         if(r==l+2){
-                            memory.pb(0);
-                            symbolsTable[strings[l]]=curAddress;
-                            curAddress++;
+                            auxData.pb(0);
+                            symbolsTable[strings[l]]=dataAddr;
+                            dataAddr++;
                         }else{
                             int qtd;
                             try{
@@ -193,11 +244,16 @@ public:
                                  l=r;
                                  continue;
                             }
-                            rep(i,0,qtd)memory.pb(0);
-                            symbolsTable[strings[l]]=curAddress;
-                            curAddress+=qtd;
+                            rep(i,0,qtd)auxData.pb(0);
+                            symbolsTable[strings[l]]=dataAddr;
+                            dataAddr+=qtd;
                         }
                     }
+                }else if(strings[l+1]=="MACRO"){
+                    while(r<strings.size() && strings[r]!="ENDMACRO")r++;
+                    r++;    
+                    vector<string> aux_v(strings.begin()+l,strings.begin()+r);
+                    insertMacro(aux_v);
                 }else{
                     symbolsTable[strings[l]]=curAddress;
                     curAddress++;
@@ -206,16 +262,45 @@ public:
                 continue;
             }
 
-            vector<string> aux(strings.begin()+l,strings.begin()+r);
-            try{
-                instructions.pb(getInstruction(aux));
-                instructions.back().setAddress(curAddress);
-                curAddress+=instructions.back().getSize();
-            }catch(const char *expt){
-                cout<<expt<<"\n";
+
+            if(isMacro(strings[l])){
+            
+                int argsCounter=r-l-1;
+                if(argsCounter!=macros[strings[l]].first){
+                    cerr<<"\nMACRO "<<strings[l]<<"has invalid amount of operands\n";
+                }else{
+                    vector<string>substitute = macros[strings[l]].second;
+
+
+                    rep(counter,0,argsCounter){
+                        while(true){
+
+                            auto it = find(substitute.begin(),substitute.end(),"#"+to_string(counter));
+                            if(it==substitute.end())break;
+                            *it = strings[l+1+counter];
+                        }
+                    }
+
+                    auto stt = strings.begin()+l;
+                    auto edd = strings.begin()+r;
+                    strings.erase(stt,edd);
+                    strings.insert(stt,substitute.begin(),substitute.end());
+                }
+                continue;
+            }else{
+
+                vector<string> aux(strings.begin()+l,strings.begin()+r);
+                try{
+                    instructions.pb(getInstruction(aux));
+                    instructions.back().setAddress(curAddress);
+                    curAddress+=instructions.back().getSize();
+                }catch(const char *expt){
+                    cout<<expt<<"\n";
+                }
             }
             l=r;
         }   
+        for(auto &c:symbolsTable)c.second +=curAddress;
         
     }   
     
@@ -274,9 +359,14 @@ public:
             for(auto x:treatedArgs){
                 memory.pb(symbolsTable[x.first]+x.second);
                 out<<symbolsTable[x.first]+x.second<<" ";
-            }out<<"\n";
-
+            }
         }
+
+        for(auto c:auxData){
+            memory.pb(c);
+            out<<c<<" ";
+        }
+
 
         for(auto x:memory ){
         cout<<x<<"\n";
@@ -335,6 +425,9 @@ int main(int argc, char* argv[]){
 
     Program pr(input);
     pr.secondPass(outputFile);
+
+    pr.showSymbolsTable();
+    pr.showMacros();
 
     outputFile.close();
 }   
