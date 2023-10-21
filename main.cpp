@@ -65,7 +65,7 @@ public:
 
     int curAddress=0;
     // tabela de símbolos
-    map<string,int> symbolsTable;
+    map<string,pair<bool,int> > symbolsTable;
     // tabela de macros
     map<string,pair<int,vector<string> > >macros;
 
@@ -118,7 +118,7 @@ public:
     void showSymbolsTable(){
         cout<<"\nSymbols Table\n";
         for(auto c:symbolsTable){
-            cout<<c.first<<" "<<c.second<<"\n";
+            cout<<c.first<<" ("<<c.second.first<<") "<<c.second.second<<"\n";
         }cout<<"\n";    
     }
     
@@ -215,7 +215,7 @@ public:
 
                         // Makes assignment at symbols table
                         try{
-                            symbolsTable[strings[l]]=dataAddr;
+                            symbolsTable[strings[l]]=make_pair(false,dataAddr);
                             auxData.pb(stoi(strings[l+2]));
                             dataAddr++;
 
@@ -233,7 +233,7 @@ public:
                     }else{
                         if(r==l+2){
                             auxData.pb(0);
-                            symbolsTable[strings[l]]=dataAddr;
+                            symbolsTable[strings[l]]=make_pair(false,dataAddr);
                             dataAddr++;
                         }else{
                             int qtd;
@@ -245,7 +245,7 @@ public:
                                  continue;
                             }
                             rep(i,0,qtd)auxData.pb(0);
-                            symbolsTable[strings[l]]=dataAddr;
+                            symbolsTable[strings[l]]=make_pair(false,dataAddr);
                             dataAddr+=qtd;
                         }
                     }
@@ -255,8 +255,7 @@ public:
                     vector<string> aux_v(strings.begin()+l,strings.begin()+r);
                     insertMacro(aux_v);
                 }else{
-                    symbolsTable[strings[l]]=curAddress;
-                    curAddress++;
+                    symbolsTable[strings[l]]=make_pair(true,curAddress);
                 }
                 l=r;
                 continue;
@@ -268,6 +267,7 @@ public:
                 int argsCounter=r-l-1;
                 if(argsCounter!=macros[strings[l]].first){
                     cerr<<"\nMACRO "<<strings[l]<<"has invalid amount of operands\n";
+                    l=r;
                 }else{
                     vector<string>substitute = macros[strings[l]].second;
 
@@ -300,7 +300,11 @@ public:
             }
             l=r;
         }   
-        for(auto &c:symbolsTable)c.second +=curAddress;
+        for(auto &c:symbolsTable){
+            if(c.second.first==false){
+                c.second.second +=curAddress;
+            }
+        }
         
     }   
     
@@ -357,8 +361,8 @@ public:
             out<<c.getOpcode()<<" ";
 
             for(auto x:treatedArgs){
-                memory.pb(symbolsTable[x.first]+x.second);
-                out<<symbolsTable[x.first]+x.second<<" ";
+                memory.pb(symbolsTable[x.first].second+x.second);
+                out<<symbolsTable[x.first].second +x.second<<" ";
             }
         }
 

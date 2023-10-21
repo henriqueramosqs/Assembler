@@ -1,1 +1,0 @@
-Testas macros com quantidades erradas de operando
