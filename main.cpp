@@ -4,8 +4,36 @@
 #define rep(i,a,b) for(int i = a;i<b;i++)
 #define pb push_back
 using namespace std;
+bool isMacroFile = false;
+string objName;
 
 
+
+string getObjName(string path){
+    string ans="";
+    int n= path.size();
+    int l=0;
+
+    rep(j,0,n){
+        int _l = n-1-j;
+        if(path[_l]=='/'){
+            l=_l+1;
+            break;
+        }
+    }
+    string extension="";
+    bool orgName = true;
+    rep(i,l,n){
+        if(path[i]=='.'){
+            orgName=false;
+        }
+        if(!orgName)extension+=path[i];
+        if(orgName)ans+=path[i];
+    }
+    if(extension==".mcr")isMacroFile = true;
+    ans+=".obj";
+    return ans;
+}
 
 class InputFile{
 private:
@@ -127,6 +155,9 @@ public:
         vector<string> strings =split(input.getRaw());
 
         int sz = strings.size();
+
+
+        string preArchive="";
         
         // stans for relative data
         int dataAddr=0;
@@ -160,6 +191,7 @@ public:
                 it++;
             }
         }
+
 
         cout<<"\n\nTreated input:\n";
         for(auto c:strings){
@@ -218,7 +250,8 @@ public:
                             symbolsTable[strings[l]]=make_pair(false,dataAddr);
                             auxData.pb(stoi(strings[l+2]));
                             dataAddr++;
-
+                            rep(i,l,1)preArchive+=(strings[i]+" ");
+                            preArchive+="\n";
                         }catch(char *excpt){
                             cerr<<"Not possible to convert "<<strings[l+2]<<" to integer";
                         }
@@ -235,10 +268,18 @@ public:
                             auxData.pb(0);
                             symbolsTable[strings[l]]=make_pair(false,dataAddr);
                             dataAddr++;
+                            
+                            //pre
+                            rep(i,l,r)preArchive+=(strings[i]+" ");
+                            preArchive+="\n";
                         }else{
                             int qtd;
                             try{
                                 qtd = stoi(strings[l+2]);
+
+                                rep(i,l,r)preArchive+=(strings[i]+" ");
+                                preArchive+="\n";
+
                             }catch(const char * expt){
                                  cerr<<"Not possible to convert "<<strings[l+2]<<" to integer";
                                  l=r;
@@ -247,6 +288,8 @@ public:
                             rep(i,0,qtd)auxData.pb(0);
                             symbolsTable[strings[l]]=make_pair(false,dataAddr);
                             dataAddr+=qtd;
+
+    
                         }
                     }
                 }else if(strings[l+1]=="MACRO"){
@@ -294,6 +337,8 @@ public:
                     instructions.pb(getInstruction(aux));
                     instructions.back().setAddress(curAddress);
                     curAddress+=instructions.back().getSize();
+                    rep(i,l,r)preArchive+=(strings[i]+" ");
+                    preArchive+="\n";
                 }catch(const char *expt){
                     cout<<expt<<"\n";
                 }
@@ -305,6 +350,13 @@ public:
                 c.second.second +=curAddress;
             }
         }
+
+
+        if(isMacroFile){
+            ofstream macroFile(objName.substr(0,objName.size()-4) +".pre");
+            macroFile<<preArchive;
+        }
+
         
     }   
     
@@ -382,25 +434,6 @@ public:
 };
 
 
-string getObjName(string path){
-    string ans="";
-    int n= path.size();
-    int l=0;
-
-    rep(j,0,n){
-        int _l = n-1-j;
-        if(path[_l]=='/'){
-            l=_l+1;
-            break;
-        }
-    }
-    rep(i,l,n){
-        if(path[i]=='.')break;
-        ans+=path[i];
-    }
-    ans+=".obj";
-    return ans;
-}
 
 int main(int argc, char* argv[]){
 
@@ -418,7 +451,9 @@ int main(int argc, char* argv[]){
         return 0;
     }
 
-    ofstream outputFile(getObjName(string(argv[1])));
+    objName = getObjName(string(argv[1]));
+    ofstream outputFile(objName);
+
     InputFile input;
 
     input.readFile(inputFile)->cleanText();
