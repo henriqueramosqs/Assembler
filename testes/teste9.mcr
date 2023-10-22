@@ -5,7 +5,7 @@ SWAP: MACRO &A,&B,
     COPY &A,&B
     ENDMACRO
 
-SWAP N1
+SWAP N1 N2
 
 SECAO DATA
 
